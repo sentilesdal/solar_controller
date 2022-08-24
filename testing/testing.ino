@@ -20,9 +20,22 @@
 #include <SPI.h>
 #include <WiFi101.h>
 #include <Servo.h>
+#include <arduino-timer.h>
+auto timer = timer_create_default();
+Timer<> default_timer;
 
+// string manipulation stuff
 #define SPTR_SIZE 20
 char *sPtr[SPTR_SIZE];
+
+// constants
+#define HOUR_IN_MS 60 * 60 * 1000
+#define O_CLOCK HOUR_IN_MS
+#define DAY_IN_MS 24 * HOUR_IN_MS
+#define TEN_HOURS HOUR_IN_MS * 10
+#define FOURTEEN_HOURS HOUR_IN_MS * 14
+#define SEVENTEEN_HOURS HOUR_IN_MS * 17
+#define SEVEN_HOURS HOUR_IN_MS * 7
 
 char ssid[] = "TheGrove";         // your network SSID (name)
 char pass[] = "2biscuits4grovey"; // your network password (use for WPA, or use as key for WEP)
@@ -54,7 +67,6 @@ void setup(void)
   {
     Serial.print("Attempting to connect to Network named: ");
     Serial.println(ssid); // print the network name (SSID);
-
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid, pass);
     // wait 10 seconds for connection:
@@ -64,14 +76,19 @@ void setup(void)
   server.begin();    // start the web server on port 80
   printWiFiStatus(); // you're connected now, so print out the status
   boardInit();       // Init the board
+
+  // turn on lights and start toggling 10 hours / 14hrs
+  setLights(1);
+  timer.in(TEN_HOURS, toggleOffLights);
+
+  // turn on evapotron in 14 hrs then toggle off/on in 7 hours / 17 hours
+  setEvapotron(1);
+  timer.in(FOURTEEN_HOURS, toggleOffEvapotron);
 }
 
 void loop(void)
 {
-  lcd[0] = "Test 1 LCD";          // you can send any data to your mobile phone.
-  lcd[1] = "Test 2 LCD";          // you can send any data to your mobile phone.
-  lcd[2] = String(analogRead(1)); //  send analog value of A1
-
+  timer.tick();
   WiFiClient client = server.available();
   if (client)
   { // if you get a client,
@@ -85,7 +102,48 @@ void loop(void)
     }
   }
   update_input();
-  printWifiSerial();
+  // printWifiSerial();
+}
+
+bool toggleOnLights(void *)
+{
+  setLights(1);
+  timer.in(TEN_HOURS, toggleOffLights);
+  return false; // don't repeat
+}
+bool toggleOffLights(void *)
+{
+  setLights(0);
+  timer.in(FOURTEEN_HOURS, toggleOnLights);
+  return false; // don't repeat
+}
+
+bool toggleOnEvapotron(void *)
+{
+  setEvapotron(1);
+  timer.in(SEVENTEEN_HOURS, toggleOffEvapotron);
+  return false; // don't repeat
+}
+
+bool toggleOffEvapotron(void *)
+{
+  // code here to turn off evapotron
+  setEvapotron(1);
+  timer.in(SEVEN_HOURS, toggleOnEvapotron);
+  return false; // don't repeat
+}
+
+void setLights(int setting)
+{
+  for (int i; i < 8; i++)
+  {
+    digitalWrite(i, setting);
+  }
+}
+
+void setEvapotron(int setting)
+{
+  digitalWrite(8, setting);
 }
 
 void process(WiFiClient client)
