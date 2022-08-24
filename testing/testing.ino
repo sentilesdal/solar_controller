@@ -21,6 +21,9 @@
 #include <WiFi101.h>
 #include <Servo.h>
 
+#define SPTR_SIZE 20
+char *sPtr[SPTR_SIZE];
+
 char ssid[] = "TheGrove";         // your network SSID (name)
 char pass[] = "2biscuits4grovey"; // your network password (use for WPA, or use as key for WEP)
 
@@ -138,11 +141,24 @@ void process(WiFiClient client)
 void terminalCommand(WiFiClient client)
 { // Here you recieve data form app terminal
   String data = client.readStringUntil('/');
+  int N = separate(data, sPtr, SPTR_SIZE);
+
+  Serial.println(" ");
+  Serial.print("command: ");
+  Serial.println(sPtr[0]);
+  Serial.println(" ");
+
+  Serial.print("param1: ");
+  Serial.println(sPtr[1]);
+  Serial.println(" ");
+
+  Serial.print("param2: ");
+  Serial.println(sPtr[2]);
+  Serial.println(" ");
+
   client.print(httpAppJsonOk + "Ok from Arduino " + String(random(1, 100)));
   delay(1);
   client.stop();
-
-  Serial.println(data);
 }
 
 void digitalCommand(WiFiClient client)
@@ -177,7 +193,7 @@ void pwmCommand(WiFiClient client)
 
 void servoCommand(WiFiClient client)
 {
-  k int pin, value;
+  int pin, value;
   pin = client.parseInt();
   if (client.read() == '/')
   {
@@ -387,4 +403,22 @@ void printWifiSerial()
     }
     serialTimer = millis();
   }
+}
+
+int separate(
+    String str,
+    char **p,
+    int size)
+{
+  int n;
+  char s[100];
+
+  strcpy(s, str.c_str());
+
+  *p++ = strtok(s, ".");
+  for (n = 1; NULL != (*p++ = strtok(NULL, ".")); n++)
+    if (size == n)
+      break;
+
+  return n;
 }
