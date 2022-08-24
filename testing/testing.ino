@@ -1,4 +1,3 @@
-
 /*
   Title  : Arduino MKR1000
   version: V4.1
@@ -62,15 +61,6 @@ byte digitalArraySize, analogArraySize;
 String httpAppJsonOk = "HTTP/1.1 200 OK \n content-type:application/json \n\n";
 String httpTextPlainOk = "HTTP/1.1 200 OK \n content-type:text/plain \n\n";
 
-bool printTime(void *)
-{
-  Serial.print(hour());
-  Serial.print(" ");
-  Serial.print(minute());
-  Serial.print(" ");
-  Serial.println(second());
-}
-
 void setup(void)
 {
   Serial.begin(115200); // initialize serial communication
@@ -89,16 +79,6 @@ void setup(void)
   server.begin();    // start the web server on port 80
   printWiFiStatus(); // you're connected now, so print out the status
   boardInit();       // Init the board
-
-  // turn on lights and start toggling 10 hours / 14hrs
-  // setLights(1);
-  // timer.in(TEN_HOURS, toggleOffLights);
-
-  // turn on evapotron in 14 hrs then toggle off/on in 7 hours / 17 hours
-  // setEvapotron(1);
-  // timer.in(FOURTEEN_HOURS, toggleOffEvapotron);
-
-  timer.every(1000, printTime);
 }
 
 void loop(void)
@@ -117,14 +97,84 @@ void loop(void)
   }
   update_input();
   printWifiSerial();
+
+  delay(500);
+  printTime();
+  delay(500);
+  updateLights();
+  updateEvapotron();
+}
+
+void printTime()
+{
+  Serial.print(hour());
+  Serial.print(":");
+  Serial.print(minute());
+  Serial.print(":");
+  Serial.print(second());
+  Serial.print(" ");
+  Serial.print(month());
+  Serial.print("/");
+  Serial.print(day());
+  Serial.print("/");
+  Serial.println(year());
+}
+
+int lightStatus = 0;
+void updateLights()
+{
+  int hr = hour();
+  // turn on lights from 8pm to 5am
+  if ((hr >= 20 || hr < 5) && lightStatus == 0)
+  {
+    setLights(1);
+    Serial.println("turning lights on");
+    lightStatus = 1;
+  }
+
+  // turn off lights from 5am to 8pm
+  if (hr >= 5 && hr < 20 && lightStatus == 1)
+  {
+    setLights(0);
+    Serial.println("turning lights off");
+    lightStatus = 0;
+  }
+}
+
+int evapotronStatus = 0;
+void updateEvapotron()
+{
+  int hr = hour();
+  // turn on evapotron from 10am to 5pm
+  if (hr >= 10 && hr < 17 && evapotronStatus == 0)
+  {
+    setEvapotron(1);
+    Serial.println("turning evapotron on");
+    evapotronStatus = 1;
+  }
+
+  // turn off evapotron from 5pm to 10am
+  if ((hr >= 17 || hr < 10) && evapotronStatus == 1)
+  {
+    setEvapotron(0);
+    Serial.println("turning evapotron off");
+    evapotronStatus = 0;
+  }
 }
 
 void setLights(int setting)
 {
-  for (int i; i < 8; i++)
-  {
-    digitalWrite(i, setting);
-  }
+  // for (int i; i < 8; i++)
+  // {
+  digitalWrite(0, setting);
+  digitalWrite(1, setting);
+  digitalWrite(2, setting);
+  digitalWrite(3, setting);
+  digitalWrite(4, setting);
+  digitalWrite(5, setting);
+  digitalWrite(6, setting);
+  digitalWrite(7, setting);
+  // }
 }
 
 void setEvapotron(int setting)
@@ -207,9 +257,10 @@ void terminalCommand(WiFiClient client)
 
   client.print(httpAppJsonOk + "Ok from Arduino " + String(random(1, 100)));
 
-  if (command == 'time')
+  if (command == "time")
   {
-    setTime(param1.toInt());
+    // adjust time to Pacific Daylight Time
+    setTime(param1.toInt() - 7 * 3600);
   }
 
   delay(1);
