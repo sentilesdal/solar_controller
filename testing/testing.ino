@@ -20,22 +20,26 @@
 #include <SPI.h>
 #include <WiFi101.h>
 #include <Servo.h>
+#include <TimeLib.h>
 #include <arduino-timer.h>
-auto timer = timer_create_default();
-Timer<> default_timer;
+
+auto timer = timer_create_default(); // create a timer with default settings
+Timer<> default_timer;               // save as above
 
 // string manipulation stuff
 #define SPTR_SIZE 20
 char *sPtr[SPTR_SIZE];
 
 // constants
-#define HOUR_IN_MS 60 * 60 * 1000
-#define O_CLOCK HOUR_IN_MS
-#define DAY_IN_MS 24 * HOUR_IN_MS
-#define TEN_HOURS HOUR_IN_MS * 10
-#define FOURTEEN_HOURS HOUR_IN_MS * 14
-#define SEVENTEEN_HOURS HOUR_IN_MS * 17
-#define SEVEN_HOURS HOUR_IN_MS * 7
+int HOUR_IN_MS = 60 * 60 * 1000;
+int O_CLOCK = HOUR_IN_MS;
+int DAY_IN_MS = 24 * HOUR_IN_MS;
+// int TEN_HOURS = HOUR_IN_MS * 10;
+// int FOURTEEN_HOURS = HOUR_IN_MS * 14;
+int TEN_HOURS = 100 * 10;
+int FOURTEEN_HOURS = 100 * 14;
+int SEVENTEEN_HOURS = HOUR_IN_MS * 17;
+int SEVEN_HOURS = HOUR_IN_MS * 7;
 
 char ssid[] = "TheGrove";         // your network SSID (name)
 char pass[] = "2biscuits4grovey"; // your network password (use for WPA, or use as key for WEP)
@@ -58,6 +62,15 @@ byte digitalArraySize, analogArraySize;
 String httpAppJsonOk = "HTTP/1.1 200 OK \n content-type:application/json \n\n";
 String httpTextPlainOk = "HTTP/1.1 200 OK \n content-type:text/plain \n\n";
 
+bool printTime(void *)
+{
+  Serial.print(hour());
+  Serial.print(" ");
+  Serial.print(minute());
+  Serial.print(" ");
+  Serial.println(second());
+}
+
 void setup(void)
 {
   Serial.begin(115200); // initialize serial communication
@@ -78,17 +91,18 @@ void setup(void)
   boardInit();       // Init the board
 
   // turn on lights and start toggling 10 hours / 14hrs
-  setLights(1);
-  timer.in(TEN_HOURS, toggleOffLights);
+  // setLights(1);
+  // timer.in(TEN_HOURS, toggleOffLights);
 
   // turn on evapotron in 14 hrs then toggle off/on in 7 hours / 17 hours
-  setEvapotron(1);
-  timer.in(FOURTEEN_HOURS, toggleOffEvapotron);
+  // setEvapotron(1);
+  // timer.in(FOURTEEN_HOURS, toggleOffEvapotron);
+
+  timer.every(1000, printTime);
 }
 
 void loop(void)
 {
-  timer.tick();
   WiFiClient client = server.available();
   if (client)
   { // if you get a client,
@@ -102,35 +116,7 @@ void loop(void)
     }
   }
   update_input();
-  // printWifiSerial();
-}
-
-bool toggleOnLights(void *)
-{
-  setLights(1);
-  timer.in(TEN_HOURS, toggleOffLights);
-  return false; // don't repeat
-}
-bool toggleOffLights(void *)
-{
-  setLights(0);
-  timer.in(FOURTEEN_HOURS, toggleOnLights);
-  return false; // don't repeat
-}
-
-bool toggleOnEvapotron(void *)
-{
-  setEvapotron(1);
-  timer.in(SEVENTEEN_HOURS, toggleOffEvapotron);
-  return false; // don't repeat
-}
-
-bool toggleOffEvapotron(void *)
-{
-  // code here to turn off evapotron
-  setEvapotron(1);
-  timer.in(SEVEN_HOURS, toggleOnEvapotron);
-  return false; // don't repeat
+  printWifiSerial();
 }
 
 void setLights(int setting)
@@ -196,25 +182,36 @@ void process(WiFiClient client)
   Serial.print(arduinoString);
   Serial.print(command);
 }
+
 void terminalCommand(WiFiClient client)
 { // Here you recieve data form app terminal
   String data = client.readStringUntil('/');
   int N = separate(data, sPtr, SPTR_SIZE);
 
+  String command = sPtr[0];
+  String param1 = sPtr[1];
+  String param2 = sPtr[2];
+
   Serial.println(" ");
   Serial.print("command: ");
-  Serial.println(sPtr[0]);
+  Serial.println(command);
   Serial.println(" ");
 
   Serial.print("param1: ");
-  Serial.println(sPtr[1]);
+  Serial.println(param1);
   Serial.println(" ");
 
   Serial.print("param2: ");
-  Serial.println(sPtr[2]);
+  Serial.println(param2);
   Serial.println(" ");
 
   client.print(httpAppJsonOk + "Ok from Arduino " + String(random(1, 100)));
+
+  if (command == 'time')
+  {
+    setTime(param1.toInt());
+  }
+
   delay(1);
   client.stop();
 }
