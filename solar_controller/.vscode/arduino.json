@@ -1,0 +1,5 @@
+{
+    "board": "arduino:samd:mkr1000",
+    "programmer": "edbg",
+    "port": "/dev/tty.usbmodem2101"
+}
