@@ -1,5 +1,7 @@
 {
     "board": "arduino:samd:mkrwifi1010",
-    "sketch": "testing/testing.ino",
-    "port": "/dev/tty.usbmodem1101"
+    "sketch": "solar_controller/solar_controller.ino",
+    "port": "/dev/tty.usbmodem2101",
+    "programmer": "edbg",
+    "output": "out/"
 }

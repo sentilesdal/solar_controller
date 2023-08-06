@@ -1,0 +1,23 @@
+{
+  "C_Cpp.errorSquiggles": "disabled",
+  "files.associations": {
+    ".env.prod": "dotenv",
+    ".env.qa": "dotenv",
+    ".env.sample": "dotenv",
+    ".env.stage": "dotenv",
+    "*.jenkinsfile": "Jenkins",
+    "*.sol": "solidity",
+    "*.tmpl": "yaml",
+    "*.yaml.tmpl": "yaml",
+    "spi.h": "c",
+    "__bit_reference": "c",
+    "__hash_table": "c",
+    "__split_buffer": "c",
+    "array": "c",
+    "initializer_list": "c",
+    "string": "c",
+    "string_view": "c",
+    "unordered_map": "c",
+    "vector": "c"
+  }
+}
