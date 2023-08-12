@@ -16,9 +16,9 @@
 
 */
 
-#include <SPI.h>
-#include "wifi.h"
-#include "board.h"
+// #include <SPI.h>
+// #include "wifi.h"
+// #include "board.h"
 #include "terminal.h"
 #include "realtimeclock.h"
 #include "constants.h"
@@ -54,21 +54,22 @@ void loop(void)
   printWifiSerial();
   updatePinValues();
 
-  // print time every 5 seconds 
+  // print time every 5 seconds
   DateTime now = rtc.now();
   int fiveSeconds = now.second() - now.second() % 5;
-  if (fiveSeconds != lastFiveSeconds) {
+  if (fiveSeconds != lastFiveSeconds)
+  {
     lastFiveSeconds = fiveSeconds;
     printTime();
   }
-  updateLights();
-  updateEvapotron();
+  updateLights(now);
+  updateEvapotron(now);
 }
 
 int lightStatus = 0;
-void updateLights()
+void updateLights(DateTime now)
 {
-  int hr = hour();
+  int hr = now.hour();
   // turn on lights from 8pm to 5am
   if ((hr >= 20 || hr < 5) && lightStatus == 0)
   {
@@ -87,19 +88,19 @@ void updateLights()
 }
 
 int evapotronStatus = 0;
-void updateEvapotron()
+void updateEvapotron(DateTime now)
 {
-  int hr = hour();
-  // turn on evapotron from 10am to 5pm
-  if (hr >= 10 && hr < 17 && evapotronStatus == 0)
+  int hr = now.hour();
+  // turn on evapotron from 9am to 6pm
+  if (hr >= 9 && hr < 18 && evapotronStatus == 0)
   {
     setEvapotron(1);
     Serial.println("turning evapotron on");
     evapotronStatus = 1;
   }
 
-  // turn off evapotron from 5pm to 10am
-  if ((hr >= 17 || hr < 10) && evapotronStatus == 1)
+  // turn off evapotron from 6pm to 9am
+  if ((hr >= 18 || hr < 9) && evapotronStatus == 1)
   {
     setEvapotron(0);
     Serial.println("turning evapotron off");
@@ -116,12 +117,11 @@ void setLights(int setting)
   digitalWrite(4, setting);
   digitalWrite(5, setting);
   digitalWrite(6, setting);
-  digitalWrite(7, setting);
 }
 
 void setEvapotron(int setting)
 {
-  digitalWrite(8, setting);
+  digitalWrite(7, setting);
 }
 
 void updatePinValues()

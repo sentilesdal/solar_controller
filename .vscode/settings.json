@@ -18,6 +18,9 @@
     "string": "c",
     "string_view": "c",
     "unordered_map": "c",
-    "vector": "c"
+    "vector": "c",
+    "ios": "cpp",
+    "realtimeclock.h": "c",
+    "chrono": "cpp"
   }
 }

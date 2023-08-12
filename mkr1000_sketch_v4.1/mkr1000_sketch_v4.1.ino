@@ -17,11 +17,11 @@
 */
 
 #include <SPI.h>
-#include <WiFi101.h>
+#include <WiFiNINA.h>
 #include <Servo.h>
 
-char ssid[] = "Mirabee";        // your network SSID (name)
-char pass[] = "1231231234";    // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "TheGrove";        // your network SSID (name)
+char pass[] = "2biscuits4grovey";    // your network password (use for WPA, or use as key for WEP)
 
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
@@ -71,7 +71,7 @@ void loop(void)
   if (client) {                             // if you get a client,
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
-        process( client);
+        process(client);
         break;
       }
     }
@@ -84,6 +84,12 @@ void process(WiFiClient client) {
   String getString = client.readStringUntil('/');
   String arduinoString = client.readStringUntil('/');
   String command = client.readStringUntil('/');
+  Serial.print("getString ");
+  Serial.println(getString);
+  Serial.print("arduinoString ");
+  Serial.println(arduinoString);
+  Serial.print("command ");
+  Serial.println(command);
 
   if (command == "digital") {
     digitalCommand(client);
@@ -120,9 +126,10 @@ void process(WiFiClient client) {
 }
 void terminalCommand(WiFiClient client) {//Here you recieve data form app terminal
   String data = client.readStringUntil('/');
-  client.print(httpAppJsonOk + "Ok from Arduino " + String(random(1, 100)));
+  //client.print(httpAppJsonOk + "Ok from Arduino " + String(random(1, 100)));
   delay(1); client.stop();
   
+  Serial.print("data");
   Serial.println(data);
 }
 
@@ -133,7 +140,11 @@ void digitalCommand(WiFiClient client) {
     value = client.parseInt();
     digitalWrite(pin, value);
     pinsValue[pin] = value;
-    client.print(httpAppJsonOk + value);
+    //client.print(httpAppJsonOk + value);
+    Serial.print("pin ");
+    Serial.println(pin);
+    Serial.print("value ");
+    Serial.println(value);
     delay(1); client.stop();
   }
 }

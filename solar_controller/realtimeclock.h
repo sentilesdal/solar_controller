@@ -46,30 +46,43 @@ void setupRTC(void)
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
-void printTime()
+String getDateTimeString()
 {
   DateTime now = rtc.now();
+  String dateTimeStr = "";
 
-  Serial.print(now.year(), DEC);
-  Serial.print('/');
-  Serial.print(now.month(), DEC);
-  Serial.print('/');
-  Serial.print(now.day(), DEC);
-  Serial.print(" (");
-  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
-  Serial.print(") ");
-  Serial.print(now.hour() % 12, DEC);
-  Serial.print(':');
-  Serial.print(now.minute(), DEC);
-  Serial.print(':');
-  Serial.print(now.second(), DEC);
-  Serial.println();
+  // Add the year, month, day to the string
+  dateTimeStr += String(now.year(), DEC);
+  dateTimeStr += "/";
+  dateTimeStr += String(now.month(), DEC);
+  dateTimeStr += "/";
+  dateTimeStr += String(now.day(), DEC);
 
-  // Serial.print(" since midnight 1/1/1970 = ");
-  // Serial.print(now.unixtime());
-  // Serial.print("s = ");
-  // Serial.print(now.unixtime() / 86400L);
-  // Serial.println("d");
-  // Serial.println();
+  // Add the day of the week
+  dateTimeStr += " (";
+  dateTimeStr += daysOfTheWeek[now.dayOfTheWeek()];
+  dateTimeStr += ") ";
+
+  // convert 24hr to 12hr clock
+  int hour = now.hour() % 12;
+  if (hour == 0)
+  {
+    hour = 12;
+  }
+  // Add the hour, minute, and second to the string
+  dateTimeStr += String(hour, DEC);
+  dateTimeStr += ":";
+  dateTimeStr += String(now.minute(), DEC);
+  dateTimeStr += ":";
+  dateTimeStr += String(now.second(), DEC);
+
+  return dateTimeStr;
 }
+
+void printTime()
+{
+  String dateTime = getDateTimeString();
+  Serial.println(dateTime);
+}
+
 #endif

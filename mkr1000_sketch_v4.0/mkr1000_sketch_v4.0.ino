@@ -16,11 +16,11 @@
 */
 
 #include <SPI.h>
-#include <WiFi101.h>
+#include <WiFiNINA.h>
 #include <Servo.h>
 
-char ssid[] = "Mirabee";        // your network SSID (name)
-char pass[] = "1231231234";    // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "TheGrove";        // your network SSID (name)
+char pass[] = "2biscuits4grovey";    // your network password (use for WPA, or use as key for WEP)
 
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
